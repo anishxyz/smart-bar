@@ -14,22 +14,32 @@ db = client['cocktails_db']
 collection = db['cocktails']
 
 # List the ingredients you have (case-insensitive)
-ingredients_available = ['Tequila', 'Lemon', 'Lime', 'Rum', 'Dry Vermouth', 'Sweet Vermouth', 'Gin']
+# sugar syrup = simple syrup
+ingredients_available = ['Tequila', 'Lemon', 'Lime', 'Rum', 'Dry Vermouth', 'Sweet Vermouth', 'Gin',
+                         'Irish Cream', 'Sugar syrup', 'kahlua', 'grenadine', 'tonic water', 'vodka', 'sugar']
 
 # Set the 'diff' value
 diff = 2
 
-# Query MongoDB to find cocktails that can be made with the ingredients
+# Create a case-insensitive regex pattern for each ingredient in ingredients_available
+ingredient_patterns = [re.compile(ingredient, re.IGNORECASE) for ingredient in ingredients_available]
+
+# Use the $or operator to find cocktails with ingredients that match any of the regex patterns
 results = collection.find({
-    'ingredients.name': {'$in': ingredients_available}
+    '$or': [{'ingredients.name': {'$regex': pattern}} for pattern in ingredient_patterns]
 })
 
 
 # Function to check if a base ingredient is in the available ingredients list
 def is_base_ingredient_available(base_ingredient, available_ingredients):
+    base_ingredient_words = set(base_ingredient.lower().split())
+
     for ingredient in available_ingredients:
-        if base_ingredient.lower() in ingredient.lower():
+        ingredient_words = set(ingredient.lower().split())
+
+        if ingredient_words.issubset(base_ingredient_words):
             return True
+
     return False
 
 
@@ -70,32 +80,36 @@ def convert_shots_to_ounces(measure):
 
     return measure
 
+
 # Initialize an empty list to store the cocktails
 cocktails = []
 
 for result in results:
-    missing_ingredients = 0
-    updated_ingredients = []
+    missing_ingredients_ct = 0
+    missing_ingredients = []
 
     for ingredient in result['ingredients']:
         updated_measure = convert_shots_to_ounces(ingredient['measure'])
         ingredient['measure'] = updated_measure
 
         if not is_base_ingredient_available(ingredient['name'], ingredients_available):
-            missing_ingredients += 1
+            missing_ingredients_ct += 1
+            missing_ingredients.append(ingredient['name'])
 
-    if missing_ingredients <= diff:
+    if missing_ingredients_ct <= diff:
         result['missing_ingredients'] = missing_ingredients
+        result['missing_ct'] = missing_ingredients_ct
         cocktails.append(result)
 
 # Sort the cocktails by the number of missing ingredients and then alphabetically by name
-sorted_cocktails = sorted(cocktails, key=lambda x: (x['missing_ingredients'], x['drink_name']))
+sorted_cocktails = sorted(cocktails, key=lambda x: (x['missing_ct'], x['drink_name']))
 
 # Print the sorted cocktails
 print("Cocktails you can make with the available ingredients and within the diff limit:")
 for cocktail in sorted_cocktails:
-    print(f"{cocktail['drink_name']} (missing {cocktail['missing_ingredients']} ingredient(s))")
-    print(f"\t\t{cocktail['ingredients']}\n")
+    print(f"{cocktail['drink_name']} (missing {cocktail['missing_ct']} ingredient(s) {cocktail['missing_ingredients']})")
+    print(f"\t\t{cocktail['ingredients']}")
+    print(f"\t\t{cocktail['instructions']}\n")
 
 
 # Close the MongoDB connection
