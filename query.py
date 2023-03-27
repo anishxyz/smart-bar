@@ -67,7 +67,6 @@ def convert_shots_to_ounces(measure):
 
             # Update the measure string with the number in ounces and the original measure
             measure = f"{measure} ({ounces:.1f} oz)"
-            print(measure)
 
     return measure
 
