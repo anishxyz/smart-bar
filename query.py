@@ -42,7 +42,7 @@ for result in results:
 
     if missing_ingredients <= diff:
         print(f"{result['drink_name']} (missing {missing_ingredients} ingredient(s))")
-        print(f"\t\t{result['ingredients']}\n")
+        print(f"\t\t{result['ingredients']}hsfdhs\n")
 
 # Close the MongoDB connection
 client.close()
