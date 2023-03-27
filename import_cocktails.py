@@ -5,11 +5,11 @@ from pymongo import MongoClient
 
 # Read the CSV file
 current_directory = os.getcwd()
-csv_file = os.path.join(current_directory, 'all_drinks.csv')
+csv_file = os.path.join(current_directory, 'file.csv')
 data = pd.read_csv(csv_file)
 
 # Connect to MongoDB
-client = MongoClient('mongodb+srv://bartender2003:kasqox-suZsa1-juvmix@clusterbar.gw34kpy.mongodb.net/?retryWrites=true&w=majority', tlsCAFile=certifi.where())
+client = MongoClient('MONGODB_URI', tlsCAFile=certifi.where())
 db = client['cocktails_db']
 print(db)
 collection = db['cocktails']
