@@ -16,7 +16,7 @@ collection = db['cocktails']
 
 # Iterate through the CSV rows and create a document for each row
 for index, row in data.iterrows():
-    print(row)
+    # print(row)
     document = {
         'drink_name': row['strDrink'],
         'alcoholic': row['strAlcoholic'],
